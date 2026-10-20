@@ -1,0 +1,399 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
+<title>Classifica Calcio 11 CSI</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Source+Sans+3:wght@400;600;700&display=swap">
+<style>
+/* Layout: header band (title + my-team strip), sticky tab rail, one data panel per view. Scoreboard numerals, chalk-on-grass palette. */
+:root{
+  --paper:#f2f5ef; --card:#ffffff; --ink:#14231a; --muted:#5b6a5f; --line:#d6ded3;
+  --pitch:#1d5a37; --pitch-ink:#ffffff; --mine:#e8b417; --mine-bg:#fbf1cc;
+  --win:#2c8a4c; --draw:#8b9188; --loss:#c0443a; --po:#1d5a37; --cup:#b07a12;
+  --display:"Barlow Condensed","Arial Narrow",system-ui,sans-serif;
+  --body:"Source Sans 3",system-ui,-apple-system,"Segoe UI",sans-serif;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --paper:#0e1611; --card:#152019; --ink:#e3ebe2; --muted:#93a396; --line:#26352b;
+  --pitch:#5cbb83; --pitch-ink:#0e1611; --mine:#f0c53a; --mine-bg:#352c10;
+  --win:#4fb874; --draw:#8d968c; --loss:#e06a5f; --po:#5cbb83; --cup:#e0a83a; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --paper:#0e1611; --card:#152019; --ink:#e3ebe2; --muted:#93a396; --line:#26352b;
+  --pitch:#5cbb83; --pitch-ink:#0e1611; --mine:#f0c53a; --mine-bg:#352c10;
+  --win:#4fb874; --draw:#8d968c; --loss:#e06a5f; --po:#5cbb83; --cup:#e0a83a; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--paper);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.45}
+.wrap{max-width:1040px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+header{padding-block:22px 14px;display:grid;gap:14px}
+.eyebrow{font-family:var(--display);font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-size:13px}
+h1{font-family:var(--display);font-weight:700;font-size:clamp(30px,6vw,44px);line-height:1;margin:0;text-wrap:balance}
+.meta{color:var(--muted);font-size:13px}
+.mine-strip{display:flex;flex-wrap:wrap;gap:10px 22px;align-items:baseline;background:var(--mine-bg);border-left:4px solid var(--mine);padding:10px 14px;border-radius:4px}
+.mine-strip .k{font-family:var(--display);font-size:13px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.mine-strip .v{font-family:var(--display);font-weight:700;font-size:24px;font-variant-numeric:tabular-nums}
+.mine-strip .team{font-family:var(--display);font-weight:700;font-size:20px}
+.mine-strip .next{font-size:14px}
+nav{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--paper);border-bottom:1px solid var(--line)}
+.tabs{display:flex;gap:2px;overflow-x:auto;scrollbar-width:none}
+.tabs::-webkit-scrollbar{display:none}
+.tabs button{font-family:var(--display);font-weight:600;font-size:16px;letter-spacing:.03em;background:none;border:0;color:var(--muted);padding:10px 12px;border-bottom:3px solid transparent;cursor:pointer;white-space:nowrap}
+.tabs button[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--pitch)}
+.tabs button:focus-visible{outline:2px solid var(--pitch);outline-offset:-2px}
+main{padding-block:18px 40px;display:grid;gap:14px}
+.lead{color:var(--muted);font-size:14px;max-width:68ch;margin:0}
+.scroll{overflow-x:auto;background:var(--card);border:1px solid var(--line);border-radius:6px}
+table{border-collapse:collapse;width:100%;font-variant-numeric:tabular-nums}
+th,td{padding:7px 8px;text-align:center;white-space:nowrap}
+th{font-family:var(--display);font-weight:600;font-size:13px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--line)}
+td{border-bottom:1px solid var(--line)}
+tr:last-child td{border-bottom:0}
+td.l,th.l{text-align:left}
+td.pos{font-family:var(--display);font-weight:700;font-size:17px;width:38px;border-left:4px solid transparent}
+tr.po td.pos{border-left-color:var(--po)}
+tr.cup td.pos{border-left-color:var(--cup)}
+td.pts{font-family:var(--display);font-weight:700;font-size:19px}
+td.team{font-weight:600}
+tr.me td{background:var(--mine-bg)}
+tr.cut td{border-top:2px dashed var(--line)}
+.chips{display:inline-flex;gap:3px}
+.chip{display:inline-grid;place-items:center;width:20px;height:20px;border-radius:3px;font-family:var(--display);font-weight:700;font-size:13px;color:#fff}
+.chip.V{background:var(--win)}.chip.N{background:var(--draw)}.chip.P{background:var(--loss)}
+.chip.x{background:transparent;border:1px dashed var(--line)}
+.legend{display:flex;flex-wrap:wrap;gap:6px 18px;font-size:13px;color:var(--muted)}
+.legend span::before{content:"";display:inline-block;width:10px;height:10px;margin-right:6px;vertical-align:-1px;border-radius:2px;background:var(--c)}
+.pos-d{font-size:12px;color:var(--muted)}
+.matrix td{min-width:44px;font-size:14px}
+.matrix td.self{background:repeating-linear-gradient(45deg,transparent 0 5px,var(--line) 5px 6px)}
+.matrix td.res{font-family:var(--display);font-weight:600;font-size:16px}
+.matrix th.row{text-align:left}
+.res.V{color:var(--win)}.res.P{color:var(--loss)}.res.N{color:var(--muted)}
+.matrix td.todo{color:var(--line)}
+.rounds{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px}
+.round{background:var(--card);border:1px solid var(--line);border-radius:6px;padding:10px 12px;min-width:0}
+.round h3{font-family:var(--display);font-weight:700;font-size:18px;margin:0 0 6px;display:flex;justify-content:space-between;gap:8px}
+.round h3 small{font-weight:500;color:var(--muted);font-size:14px}
+.fx{display:grid;grid-template-columns:1fr auto 1fr;gap:8px;padding:4px 0;border-top:1px solid var(--line);font-size:14px;align-items:center}
+.fx:first-of-type{border-top:0}
+.fx .h{text-align:right}.fx .s{font-family:var(--display);font-weight:700;font-size:17px;min-width:44px;text-align:center;font-variant-numeric:tabular-nums}
+.fx.me{background:var(--mine-bg);margin-inline:-12px;padding-inline:12px}
+.fx .s.wait{color:var(--muted);font-weight:500;font-size:14px}
+.bars{display:grid;gap:6px;background:var(--card);border:1px solid var(--line);border-radius:6px;padding:12px}
+.bar{display:grid;grid-template-columns:minmax(90px,150px) 1fr 54px;gap:10px;align-items:center;font-size:14px}
+.bar .track{position:relative;height:18px;background:var(--paper);border-radius:3px;overflow:hidden}
+.bar .fill{position:absolute;inset:0 auto 0 0;background:var(--pitch);opacity:.85}
+.bar .fill.lo{opacity:.35}
+.bar.me .fill{background:var(--mine);opacity:1}
+.bar .n{font-family:var(--display);font-weight:700;font-size:17px;text-align:right;font-variant-numeric:tabular-nums}
+.bar .t{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.note{font-size:13px;color:var(--muted);margin:0}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:14px}
+.grid2>*{min-width:0}
+h2{font-family:var(--display);font-weight:700;font-size:22px;margin:4px 0 0}
+.toggle{display:flex;flex-wrap:wrap;gap:6px}
+.toggle button{font:inherit;font-size:13px;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:14px;padding:3px 10px;cursor:pointer}
+.toggle button[aria-pressed="true"]{border-color:var(--ink);font-weight:700}
+.chart{background:var(--card);border:1px solid var(--line);border-radius:6px;padding:8px}
+.chart svg{display:block;width:100%;height:auto}
+.badge{display:inline-block;font-size:11px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;padding:1px 6px;border-radius:3px;background:var(--mine);color:#1a1a1a}
+.badge.red{background:var(--loss);color:#fff}
+@media (max-width:560px){.hide-sm{display:none}th,td{padding:6px 5px}}
+@media (prefers-reduced-motion:no-preference){.fill{transition:width .3s}}
+</style>
+</head>
+<body>
+
+
+<div class="wrap">
+  <header>
+    <div class="eyebrow" id="sub"></div>
+    <h1>Classifica Calcio 11</h1>
+    <div class="meta" id="meta"></div>
+    <div class="mine-strip" id="mine"></div>
+  </header>
+</div>
+<nav><div class="wrap"><div class="tabs" role="tablist" id="tabs"></div></div></nav>
+<div class="wrap"><main id="view"></main></div>
+
+<script id="data" type="application/json">{"titolo": "47° Campionato \"Donato Guercio\" · Calcio 11 Open · CSI Ravenna", "stagione": "2026-2027", "aggiornato": "2026-10-20", "ultimoComunicato": 7, "miaSquadra": "COT", "partiteTotali": 22, "playoff": 6, "squadre": [{"id": "COT", "nome": "Mazzoni Gomme Cotignola", "breve": "Cotignola"}, {"id": "STU", "nome": "Amatori Stuoie Lugo", "breve": "Stuoie Lugo"}, {"id": "IMO", "nome": "Imola United", "breve": "Imola Utd"}, {"id": "GRI", "nome": "FC Grillo", "breve": "FC Grillo"}, {"id": "SER", "nome": "Atletico Serafina", "breve": "Atl. Serafina"}, {"id": "WIL", "nome": "Wild Bagnara", "breve": "Wild Bagnara"}, {"id": "PMT", "nome": "Punta Marina Terme", "breve": "Punta Marina"}, {"id": "MEL", "nome": "Melardot FC", "breve": "Melardot"}, {"id": "MAR", "nome": "Marina Amatori", "breve": "Marina Am."}, {"id": "GOD", "nome": "Magic Godo", "breve": "Magic Godo"}, {"id": "MEZ", "nome": "Mezzano", "breve": "Mezzano"}, {"id": "HAC", "nome": "Hacker FC", "breve": "Hacker FC"}], "giornate": [{"g": 1, "data": "2026-10-05", "label": "3/5 ott"}, {"g": 2, "data": "2026-10-12", "label": "10/12 ott"}, {"g": 3, "data": "2026-10-19", "label": "17/19 ott"}, {"g": 4, "data": "2026-10-26", "label": "24/26 ott"}, {"g": 5, "data": "2026-11-02", "label": "31 ott/2 nov"}, {"g": 6, "data": "2026-11-09", "label": "7/9 nov"}, {"g": 7, "data": "2026-11-16", "label": "14/16 nov"}, {"g": 8, "data": "2026-11-23", "label": "21/23 nov"}, {"g": 9, "data": "2026-11-30", "label": "28/30 nov"}, {"g": 11, "data": "2026-12-14", "label": "12/14 dic"}, {"g": 10, "data": "2027-01-18", "label": "16/18 gen"}], "partite": [{"n": 13, "g": 1, "casa": "STU", "ospite": "IMO", "gc": 3, "go": 0}, {"n": 14, "g": 1, "casa": "GRI", "ospite": "SER", "gc": 1, "go": 1}, {"n": 15, "g": 1, "casa": "WIL", "ospite": "PMT", "gc": 1, "go": 0}, {"n": 16, "g": 1, "casa": "MEL", "ospite": "MAR", "gc": 0, "go": 4}, {"n": 17, "g": 1, "casa": "GOD", "ospite": "COT", "gc": 1, "go": 1}, {"n": 18, "g": 1, "casa": "MEZ", "ospite": "HAC", "gc": 3, "go": 0}, {"n": 19, "g": 2, "casa": "COT", "ospite": "MEZ", "gc": 2, "go": 1}, {"n": 20, "g": 2, "casa": "MAR", "ospite": "GOD", "gc": 2, "go": 2}, {"n": 21, "g": 2, "casa": "PMT", "ospite": "MEL", "gc": 4, "go": 2}, {"n": 22, "g": 2, "casa": "SER", "ospite": "WIL", "gc": 1, "go": 0}, {"n": 23, "g": 2, "casa": "IMO", "ospite": "GRI", "gc": 5, "go": 1}, {"n": 24, "g": 2, "casa": "HAC", "ospite": "STU", "gc": 0, "go": 2}, {"n": 25, "g": 3, "casa": "GRI", "ospite": "STU", "gc": 2, "go": 2}, {"n": 26, "g": 3, "casa": "WIL", "ospite": "IMO", "gc": 1, "go": 0}, {"n": 27, "g": 3, "casa": "MEL", "ospite": "SER", "gc": 2, "go": 0}, {"n": 28, "g": 3, "casa": "GOD", "ospite": "PMT", "gc": 3, "go": 3}, {"n": 29, "g": 3, "casa": "MEZ", "ospite": "MAR", "gc": 1, "go": 1}, {"n": 30, "g": 3, "casa": "HAC", "ospite": "COT", "gc": 0, "go": 2}, {"n": 31, "g": 4, "casa": "MAR", "ospite": "COT"}, {"n": 32, "g": 4, "casa": "PMT", "ospite": "MEZ"}, {"n": 33, "g": 4, "casa": "SER", "ospite": "GOD"}, {"n": 34, "g": 4, "casa": "IMO", "ospite": "MEL"}, {"n": 35, "g": 4, "casa": "STU", "ospite": "WIL"}, {"n": 36, "g": 4, "casa": "HAC", "ospite": "GRI"}, {"n": 37, "g": 5, "casa": "WIL", "ospite": "GRI"}, {"n": 38, "g": 5, "casa": "MEL", "ospite": "STU"}, {"n": 39, "g": 5, "casa": "GOD", "ospite": "IMO"}, {"n": 40, "g": 5, "casa": "MEZ", "ospite": "SER"}, {"n": 41, "g": 5, "casa": "COT", "ospite": "PMT"}, {"n": 42, "g": 5, "casa": "MAR", "ospite": "HAC"}, {"n": 43, "g": 6, "casa": "PMT", "ospite": "MAR"}, {"n": 44, "g": 6, "casa": "SER", "ospite": "COT"}, {"n": 45, "g": 6, "casa": "IMO", "ospite": "MEZ"}, {"n": 46, "g": 6, "casa": "STU", "ospite": "GOD"}, {"n": 47, "g": 6, "casa": "GRI", "ospite": "MEL"}, {"n": 48, "g": 6, "casa": "HAC", "ospite": "WIL"}, {"n": 49, "g": 7, "casa": "MEL", "ospite": "WIL"}, {"n": 50, "g": 7, "casa": "GOD", "ospite": "GRI"}, {"n": 51, "g": 7, "casa": "MEZ", "ospite": "STU"}, {"n": 52, "g": 7, "casa": "COT", "ospite": "IMO"}, {"n": 53, "g": 7, "casa": "MAR", "ospite": "SER"}, {"n": 54, "g": 7, "casa": "PMT", "ospite": "HAC"}, {"n": 55, "g": 8, "casa": "SER", "ospite": "PMT"}, {"n": 56, "g": 8, "casa": "IMO", "ospite": "MAR"}, {"n": 57, "g": 8, "casa": "STU", "ospite": "COT"}, {"n": 58, "g": 8, "casa": "GRI", "ospite": "MEZ"}, {"n": 59, "g": 8, "casa": "WIL", "ospite": "GOD"}, {"n": 60, "g": 8, "casa": "HAC", "ospite": "MEL"}, {"n": 61, "g": 9, "casa": "GOD", "ospite": "MEL"}, {"n": 62, "g": 9, "casa": "MEZ", "ospite": "WIL"}, {"n": 63, "g": 9, "casa": "COT", "ospite": "GRI"}, {"n": 64, "g": 9, "casa": "MAR", "ospite": "STU"}, {"n": 65, "g": 9, "casa": "PMT", "ospite": "IMO"}, {"n": 66, "g": 9, "casa": "SER", "ospite": "HAC"}, {"n": 67, "g": 10, "casa": "IMO", "ospite": "SER"}, {"n": 68, "g": 10, "casa": "STU", "ospite": "PMT"}, {"n": 69, "g": 10, "casa": "GRI", "ospite": "MAR"}, {"n": 70, "g": 10, "casa": "WIL", "ospite": "COT"}, {"n": 71, "g": 10, "casa": "MEL", "ospite": "MEZ"}, {"n": 72, "g": 10, "casa": "HAC", "ospite": "GOD"}, {"n": 73, "g": 11, "casa": "MEZ", "ospite": "GOD"}, {"n": 74, "g": 11, "casa": "COT", "ospite": "MEL"}, {"n": 75, "g": 11, "casa": "MAR", "ospite": "WIL"}, {"n": 76, "g": 11, "casa": "PMT", "ospite": "GRI"}, {"n": 77, "g": 11, "casa": "SER", "ospite": "STU"}, {"n": 78, "g": 11, "casa": "IMO", "ospite": "HAC"}], "ordineUfficiale": {"comunicato": 7, "giornate": 2, "ordine": ["STU", "MAR", "SER", "COT", "MEZ", "IMO", "PMT", "WIL", "GOD", "GRI", "HAC", "MEL"]}, "disciplina": {"nota": "Classifica ufficiale Coppa Disciplina (punti più bassi = meglio). Il comunicato la pubblica con una settimana di ritardo.", "al": "2026-10-07", "comunicato": 7, "punti": {"HAC": 0, "GOD": 0, "MAR": 0, "COT": 0, "MEL": 0, "MEZ": 0, "STU": 0.3, "IMO": 0.3, "PMT": 0.3, "WIL": 0.6, "SER": 0.9, "GRI": 1.2}}, "provvedimenti": [{"gs": 6, "g": 1, "tipo": "A", "squadra": "STU", "nome": "Martelli Mattia"}, {"gs": 6, "g": 1, "tipo": "A", "squadra": "SER", "nome": "Grosso Ciriaco"}, {"gs": 6, "g": 1, "tipo": "A", "squadra": "SER", "nome": "Passarella Andrea"}, {"gs": 6, "g": 1, "tipo": "A", "squadra": "SER", "nome": "Salzano Antonio"}, {"gs": 6, "g": 1, "tipo": "A", "squadra": "GRI", "nome": "Briccolani Luca"}, {"gs": 6, "g": 1, "tipo": "A", "squadra": "GRI", "nome": "Tattoli Luca"}, {"gs": 6, "g": 1, "tipo": "A", "squadra": "GRI", "nome": "Vitiello Mauro"}, {"gs": 6, "g": 1, "tipo": "A", "squadra": "GRI", "nome": "Xhaxho Ernando"}, {"gs": 6, "g": 1, "tipo": "A", "squadra": "IMO", "nome": "Ndiaye Cheick Mar"}, {"gs": 6, "g": 1, "tipo": "A", "squadra": "PMT", "nome": "Calabrese Alberto"}, {"gs": 6, "g": 1, "tipo": "A", "squadra": "PMT", "nome": "Omiccioli Massimiliano"}, {"gs": 6, "g": 1, "tipo": "A", "squadra": "WIL", "nome": "Liparesi Luca"}, {"gs": 6, "g": 1, "tipo": "A", "squadra": "WIL", "nome": "Valente Matteo"}, {"gs": 7, "g": 2, "tipo": "E", "squadra": "GRI", "nome": "Xhaxho Ernando", "gg": 1}, {"gs": 7, "g": 2, "tipo": "E", "squadra": "IMO", "nome": "Camara Lamin", "gg": 1}, {"gs": 7, "g": 2, "tipo": "D", "squadra": "SER", "nome": "Paradisi Matteo", "gg": 1}, {"gs": 7, "g": 2, "tipo": "A", "squadra": "MAR", "nome": "Bottaro Giacomo", "n": 2}, {"gs": 7, "g": 2, "tipo": "A", "squadra": "WIL", "nome": "Liparesi Luca"}, {"gs": 7, "g": 2, "tipo": "A", "squadra": "STU", "nome": "Paganelli Marco"}, {"gs": 7, "g": 2, "tipo": "A", "squadra": "SER", "nome": "Rosetti Filippo"}, {"gs": 7, "g": 2, "tipo": "A", "squadra": "SER", "nome": "Sammartino Alessio Nunzio"}, {"gs": 7, "g": 2, "tipo": "A", "squadra": "SER", "nome": "Verderame Manuel"}, {"gs": 7, "g": 2, "tipo": "A", "squadra": "HAC", "nome": "Alni Matteo"}, {"gs": 7, "g": 2, "tipo": "A", "squadra": "HAC", "nome": "Castelvetro Marco"}, {"gs": 7, "g": 2, "tipo": "A", "squadra": "GOD", "nome": "Funicelli Gianluca"}, {"gs": 7, "g": 2, "tipo": "A", "squadra": "GOD", "nome": "Leoni Jacopo"}, {"gs": 7, "g": 2, "tipo": "A", "squadra": "GOD", "nome": "Plazzi Filippo"}, {"gs": 7, "g": 2, "tipo": "A", "squadra": "MAR", "nome": "Galilei Kevin"}, {"gs": 7, "g": 2, "tipo": "A", "squadra": "COT", "nome": "Casadio Luca"}, {"gs": 7, "g": 2, "tipo": "A", "squadra": "COT", "nome": "Fabbri Sebastiano"}, {"gs": 7, "g": 2, "tipo": "A", "squadra": "COT", "nome": "Mazzoni Lorenzo"}, {"gs": 7, "g": 2, "tipo": "A", "squadra": "MEL", "nome": "Lauria Federico"}, {"gs": 7, "g": 2, "tipo": "A", "squadra": "MEL", "nome": "Lavuri Gianfilippo"}, {"gs": 7, "g": 2, "tipo": "A", "squadra": "MEZ", "nome": "Alif Amin"}, {"gs": 7, "g": 2, "tipo": "A", "squadra": "WIL", "nome": "Di Palma Raffaele"}, {"gs": 7, "g": 2, "tipo": "A", "squadra": "WIL", "nome": "Teclani Marco"}], "marcatori": {"comunicato": 7, "lista": [{"nome": "Capannari Giovanni Maria", "squadra": "COT", "reti": 3}, {"nome": "Rebeiz Yacinthe", "squadra": "IMO", "reti": 2}, {"nome": "Bandini Andrea", "squadra": "STU", "reti": 2}, {"nome": "Caponegro Paolo", "squadra": "MAR", "reti": 1}, {"nome": "Dell'Anno Raffaele", "squadra": "GOD", "reti": 1}, {"nome": "Perrone Michael", "squadra": "PMT", "reti": 1}, {"nome": "Briccolani Luca", "squadra": "GRI", "reti": 1}, {"nome": "Caiola Stefano Salvatore", "squadra": "MAR", "reti": 1}, {"nome": "Castellari Federico", "squadra": "WIL", "reti": 1}, {"nome": "Diagne Mamadou Lamine", "squadra": "IMO", "reti": 1}, {"nome": "Donati Tommaso", "squadra": "MEZ", "reti": 1}, {"nome": "Foschini Giacomo", "squadra": "MEZ", "reti": 1}, {"nome": "Fusha Klodaldo", "squadra": "MEL", "reti": 1}, {"nome": "Galasso Angelo", "squadra": "MEL", "reti": 1}, {"nome": "Ghinassi Francesco", "squadra": "GRI", "reti": 1}, {"nome": "Grimaldi Giuliano", "squadra": "MAR", "reti": 1}, {"nome": "Ignini Francesco", "squadra": "MEZ", "reti": 1}, {"nome": "Liverani Mario", "squadra": "MEZ", "reti": 1}, {"nome": "Marandella Fabio", "squadra": "MAR", "reti": 1}, {"nome": "Omiccioli Massimiliano", "squadra": "PMT", "reti": 1}, {"nome": "Perchinelli Omar", "squadra": "STU", "reti": 1}, {"nome": "Pino Cristian", "squadra": "SER", "reti": 1}, {"nome": "Porcu Leonardo", "squadra": "PMT", "reti": 1}, {"nome": "Salzano Salvatore", "squadra": "GOD", "reti": 1}, {"nome": "Sammartino Alessio", "squadra": "SER", "reti": 1}, {"nome": "Taglioni Piero", "squadra": "MAR", "reti": 1}, {"nome": "Todisco Nicola", "squadra": "STU", "reti": 1}, {"nome": "Treossi Fabio", "squadra": "STU", "reti": 1}, {"nome": "Wade Cheikhouna", "squadra": "IMO", "reti": 1}]}, "nota": "Risultati della 3ª giornata presi da tuttocampo.it, in attesa del comunicato n. 8 (marcatori e disciplina non ancora aggiornati)."}</script>
+<script>
+const D = JSON.parse(document.getElementById('data').textContent);
+const ME = D.miaSquadra;
+const T = Object.fromEntries(D.squadre.map(s => [s.id, s]));
+const ROUND_DATE = Object.fromEntries(D.giornate.map(r => [r.g, r.data]));
+const ROUND_ORDER = D.giornate.map(r => r.g);
+const played = D.partite.filter(m => m.gc != null)
+  .sort((a, b) => ROUND_DATE[a.g].localeCompare(ROUND_DATE[b.g]) || a.n - b.n);
+const DISC = D.disciplina.punti;
+const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const fmtDate = iso => new Date(iso + 'T12:00:00').toLocaleDateString('it-IT', {weekday:'short', day:'numeric', month:'short'});
+const norm = s => String(s).toLowerCase().normalize('NFD').replace(/[^a-z ]/g, '').split(' ').filter(Boolean);
+const IO = D.io ? norm(D.io) : [];
+// Il comunicato abbrevia i nomi ("Rossi M."): basta che cognome e iniziale del nome coincidano.
+const isMe = (nome, sq) => sq === ME && IO.length > 1 && (w => w.includes(IO[0]) && w.some(x => IO[1].startsWith(x)))(norm(nome));
+const tu = '<span class="badge">Tu</span>';
+const num = (x, d = 2) => x.toFixed(d).replace('.', ',');
+const sign = x => x > 0 ? '+' + x : String(x);
+
+function blank(id){return {id,g:0,v:0,n:0,p:0,gf:0,gs:0,pt:0}}
+function addResult(r, gf, gs){
+  r.g++; r.gf += gf; r.gs += gs;
+  if (gf > gs){r.v++; r.pt += 3} else if (gf === gs){r.n++; r.pt += 1} else r.p++;
+}
+function table(matches, side){ // side: 'all' | 'casa' | 'ospite'
+  const rows = Object.fromEntries(D.squadre.map(s => [s.id, blank(s.id)]));
+  for (const m of matches){
+    if (side !== 'ospite') addResult(rows[m.casa], m.gc, m.go);
+    if (side !== 'casa') addResult(rows[m.ospite], m.go, m.gc);
+  }
+  return Object.values(rows);
+}
+// Criteri CSI del regolamento: avulsa (punti, vittorie, DR, GF), coppa disciplina, poi generale (V, DR, GF), sorteggio.
+function rank(rows, matches, official = true){
+  const by = (a, b) => b.pt - a.pt;
+  rows.sort(by);
+  if (!official){
+    return rows.sort((a, b) => b.pt - a.pt || (b.gf - b.gs) - (a.gf - a.gs) || b.gf - a.gf || T[a.id].nome.localeCompare(T[b.id].nome));
+  }
+  const out = [];
+  for (let i = 0; i < rows.length;){
+    let j = i; while (j < rows.length && rows[j].pt === rows[i].pt) j++;
+    const grp = rows.slice(i, j);
+    if (grp.length > 1){
+      const ids = new Set(grp.map(r => r.id));
+      const mini = Object.fromEntries(table(matches.filter(m => ids.has(m.casa) && ids.has(m.ospite)), 'all').filter(r => ids.has(r.id)).map(r => [r.id, r]));
+      grp.sort((a, b) => {
+        const A = mini[a.id], B = mini[b.id];
+        return B.pt - A.pt || B.v - A.v || (B.gf - B.gs) - (A.gf - A.gs) || B.gf - A.gf
+          || (DISC[a.id] ?? 0) - (DISC[b.id] ?? 0)
+          || b.v - a.v || (b.gf - b.gs) - (a.gf - a.gs) || b.gf - a.gf
+          || T[a.id].nome.localeCompare(T[b.id].nome);
+      });
+    }
+    out.push(...grp); i = j;
+  }
+  return out;
+}
+function seq(id){ // chronological results for one team
+  return played.filter(m => m.casa === id || m.ospite === id).map(m => {
+    const home = m.casa === id, f = home ? m.gc : m.go, a = home ? m.go : m.gc;
+    return {m, home, f, a, r: f > a ? 'V' : f === a ? 'N' : 'P', opp: home ? m.ospite : m.casa};
+  });
+}
+function chips(id, k = 5){
+  const s = seq(id).slice(-k);
+  const pad = Array(Math.max(0, k - s.length)).fill('<span class="chip x"></span>');
+  return '<span class="chips">' + pad.join('') + s.map(x =>
+    `<span class="chip ${x.r}" title="${esc((x.home ? 'Casa' : 'Trasf.') + ' vs ' + T[x.opp].nome + ' ' + x.f + '-' + x.a)}">${x.r}</span>`).join('') + '</span>';
+}
+const playedRounds = ROUND_ORDER.filter(g => played.some(m => m.g === g));
+function standingAt(nRounds){
+  const gs = new Set(playedRounds.slice(0, nRounds));
+  const ms = played.filter(m => gs.has(m.g));
+  return rank(table(ms, 'all'), ms);
+}
+const computed = standingAt(playedRounds.length);
+// Ordine pubblicato nel comunicato (se aggiornato alle stesse giornate): è quello di riferimento.
+const UFF = D.ordineUfficiale && D.ordineUfficiale.giornate === playedRounds.length ? D.ordineUfficiale : null;
+const official = UFF ? UFF.ordine.map(id => computed.find(r => r.id === id)) : computed;
+const current = official;
+const prev = playedRounds.length > 1 ? standingAt(playedRounds.length - 1) : null;
+const posOf = (st, id) => st.findIndex(r => r.id === id) + 1;
+
+// ---------- header ----------
+document.getElementById('sub').textContent = D.titolo;
+document.getElementById('meta').textContent =
+  `Stagione ${D.stagione} · aggiornata ${fmtDate(D.aggiornato)} · ultimo comunicato n. ${D.ultimoComunicato} ·${playedRounds.length} giornate giocate su ${D.partiteTotali}${D.nota ? ' · ' + D.nota : ''}`;
+(function(){
+  const r = current.find(x => x.id === ME), p = posOf(current, ME);
+  const today = new Date().toISOString().slice(0, 10);
+  const mine = D.partite.filter(m => m.casa === ME || m.ospite === ME)
+    .sort((a, b) => ROUND_DATE[a.g].localeCompare(ROUND_DATE[b.g]));
+  const pending = mine.filter(m => m.gc == null && ROUND_DATE[m.g] < today);
+  const next = mine.find(m => m.gc == null && ROUND_DATE[m.g] >= today);
+  const vs = m => `${T[m.casa].breve} – ${T[m.ospite].breve}`;
+  document.getElementById('mine').innerHTML = `
+    <span class="team">${esc(T[ME].nome)}</span>
+    <span><span class="k">Posizione</span> <span class="v">${p}ª</span></span>
+    <span><span class="k">Punti</span> <span class="v">${r.pt}</span></span>
+    <span><span class="k">Forma</span> ${chips(ME)}</span>
+    ${pending.length ? `<span class="next">In attesa del risultato: <b>${esc(vs(pending[0]))}</b> (${pending[0].g}ª)</span>` : ''}
+    ${next ? `<span class="next">Prossima: <b>${esc(vs(next))}</b>, ${fmtDate(ROUND_DATE[next.g])}</span>` : ''}`;
+})();
+
+// ---------- views ----------
+function standingsTable(rows, opts = {}){
+  const zones = opts.zones !== false;
+  return `<div class="scroll"><table>
+  <thead><tr><th>#</th><th class="l">Squadra</th><th>Pt</th><th>G</th><th>V</th><th>N</th><th>P</th><th>GF</th><th>GS</th><th>DR</th>${opts.form ? '<th class="hide-sm">Ultime 5</th>' : ''}</tr></thead>
+  <tbody>${rows.map((r, i) => {
+    const cls = [r.id === ME ? 'me' : '', zones ? (i < D.playoff ? 'po' : 'cup') : '', zones && i === D.playoff ? 'cut' : ''].join(' ');
+    let delta = '';
+    if (opts.delta && prev){const d = posOf(prev, r.id) - (i + 1); delta = d ? ` <span class="pos-d">${d > 0 ? '▲' : '▼'}${Math.abs(d)}</span>` : ''}
+    return `<tr class="${cls}"><td class="pos">${i + 1}</td><td class="l team">${esc(T[r.id].nome)}${delta}</td><td class="pts">${r.pt}</td><td>${r.g}</td><td>${r.v}</td><td>${r.n}</td><td>${r.p}</td><td>${r.gf}</td><td>${r.gs}</td><td>${sign(r.gf - r.gs)}</td>${opts.form ? `<td class="hide-sm">${chips(r.id)}</td>` : ''}</tr>`;
+  }).join('')}</tbody></table></div>`;
+}
+const zoneLegend = `<div class="legend"><span style="--c:var(--po)">1ª–6ª: Play Off</span><span style="--c:var(--cup)">7ª–12ª: Coppa "Walter Godoli"</span><span style="--c:var(--mine)">La tua squadra</span></div>`;
+
+const VIEWS = {
+  generale: ['Generale', () => {
+    const avulsa = genMode === 'avulsa' || !UFF;
+    return `
+    ${UFF ? `<div class="toggle" id="mode"><button type="button" data-m="uff" aria-pressed="${!avulsa}">Come da comunicato n. ${UFF.comunicato}</button><button type="button" data-m="avulsa" aria-pressed="${avulsa}">Criteri del regolamento</button></div>` : ''}
+    <p class="lead">${avulsa
+      ? 'Ordine calcolato con i criteri del regolamento: a parità di punti valgono la classifica avulsa (punti, vittorie, differenza reti e gol negli scontri diretti), poi la Coppa Disciplina e infine vittorie, differenza reti e gol totali. A inizio stagione, con pochi scontri diretti giocati, può differire dal comunicato.'
+      : 'Ordine pubblicato nel comunicato ufficiale. Con "Criteri del regolamento" vedi come cambierebbe applicando la classifica avulsa.'}
+    Le frecce indicano lo spostamento rispetto alla giornata precedente.</p>
+    ${standingsTable(avulsa ? computed : official, {form: true, delta: true})}${zoneLegend}`;
+  }],
+  casa: ['Casa', () => `
+    <p class="lead">Solo le partite giocate in casa. Ordinata per punti, differenza reti e gol fatti.</p>
+    ${standingsTable(rank(table(played, 'casa'), played, false), {zones: false})}`],
+  trasferta: ['Trasferta', () => `
+    <p class="lead">Solo le partite giocate in trasferta. Ordinata per punti, differenza reti e gol fatti.</p>
+    ${standingsTable(rank(table(played, 'ospite'), played, false), {zones: false})}`],
+  forma: ['Forma', () => {
+    const rows = D.squadre.map(s => {const l = seq(s.id).slice(-5); return {id: s.id, pt: l.reduce((t, x) => t + (x.r === 'V' ? 3 : x.r === 'N' ? 1 : 0), 0), g: l.length, gf: l.reduce((t, x) => t + x.f, 0), gs: l.reduce((t, x) => t + x.a, 0)}})
+      .sort((a, b) => b.pt - a.pt || (b.gf - b.gs) - (a.gf - a.gs) || b.gf - a.gf);
+    return `<p class="lead">Rendimento nelle ultime 5 partite giocate da ogni squadra (la più recente è a destra). Passa sopra un risultato per vedere avversario e punteggio.</p>
+    <div class="scroll"><table><thead><tr><th>#</th><th class="l">Squadra</th><th>Ultime 5</th><th>Pt</th><th>GF</th><th>GS</th></tr></thead><tbody>
+    ${rows.map((r, i) => `<tr class="${r.id === ME ? 'me' : ''}"><td class="pos">${i + 1}</td><td class="l team">${esc(T[r.id].nome)}</td><td>${chips(r.id)}</td><td class="pts">${r.pt}</td><td>${r.gf}</td><td>${r.gs}</td></tr>`).join('')}
+    </tbody></table></div>`;
+  }],
+  andamento: ['Andamento', () => `
+    <p class="lead">Posizione in classifica dopo ogni giornata. Tocca una squadra per evidenziarla insieme alla tua.</p>
+    <div class="toggle" id="pick">${D.squadre.filter(s => s.id !== ME).map(s => `<button type="button" data-id="${s.id}" aria-pressed="false">${esc(s.breve)}</button>`).join('')}</div>
+    <div class="chart" id="chart"></div>`],
+  medie: ['Medie e serie', () => {
+    const rows = current.map(r => {
+      const s = seq(r.id);
+      let cur = '', curN = 0, unb = 0, maxUnb = 0, win = 0, maxWin = 0;
+      for (const x of s){
+        if (x.r === cur) curN++; else {cur = x.r; curN = 1}
+        unb = x.r !== 'P' ? unb + 1 : 0; maxUnb = Math.max(maxUnb, unb);
+        win = x.r === 'V' ? win + 1 : 0; maxWin = Math.max(maxWin, win);
+      }
+      return {r, cs: s.filter(x => x.a === 0).length, ns: s.filter(x => x.f === 0).length, cur: cur ? cur + curN : '–', unb, maxUnb, maxWin};
+    });
+    const g = x => x.r.g || 1;
+    return `<p class="lead">Medie a partita e serie di risultati, nell'ordine della classifica generale. "Serie attuale" indica il risultato delle ultime partite consecutive (es. V2 = due vittorie di fila).</p>
+    <div class="scroll"><table><thead><tr><th>#</th><th class="l">Squadra</th><th>Pt/G</th><th>GF/G</th><th>GS/G</th><th title="Partite senza subire gol">Porta inviol.</th><th title="Partite senza segnare">A secco</th><th>Serie attuale</th><th title="Partite consecutive senza sconfitte, attuale / record">Imbattibilità</th><th title="Record di vittorie consecutive">Max vittorie fila</th></tr></thead><tbody>
+    ${rows.map((x, i) => `<tr class="${x.r.id === ME ? 'me' : ''}"><td class="pos">${i + 1}</td><td class="l team">${esc(T[x.r.id].nome)}</td><td class="pts">${num(x.r.pt / g(x))}</td><td>${num(x.r.gf / g(x))}</td><td>${num(x.r.gs / g(x))}</td><td>${x.cs}</td><td>${x.ns}</td><td>${x.cur}</td><td>${x.unb} / ${x.maxUnb}</td><td>${x.maxWin}</td></tr>`).join('')}
+    </tbody></table></div>`;
+  }],
+  scontri: ['Scontri diretti', () => {
+    const ids = current.map(r => r.id);
+    const cell = (h, a) => {
+      if (h === a) return '<td class="self"></td>';
+      const m = D.partite.find(x => x.casa === h && x.ospite === a);
+      if (!m) return '<td class="todo">·</td>';
+      if (m.gc == null) return `<td class="todo" title="${m.g}ª giornata">${m.g}ª</td>`;
+      const r = m.gc > m.go ? 'V' : m.gc === m.go ? 'N' : 'P';
+      return `<td class="res ${r}">${m.gc}-${m.go}</td>`;
+    };
+    return `<p class="lead">Righe: squadra di casa. Colonne: squadra ospite. Il colore è dal punto di vista della squadra di casa (verde vittoria, rosso sconfitta). Le celle non ancora giocate mostrano la giornata in programma; quelle vuote appartengono al girone di ritorno.</p>
+    <div class="scroll"><table class="matrix"><thead><tr><th class="l">Casa \\ Ospite</th>${ids.map(id => `<th title="${esc(T[id].nome)}">${esc(T[id].breve.slice(0, 3).toUpperCase())}</th>`).join('')}</tr></thead><tbody>
+    ${ids.map(h => `<tr class="${h === ME ? 'me' : ''}"><th class="l row">${esc(T[h].breve)}</th>${ids.map(a => cell(h, a)).join('')}</tr>`).join('')}
+    </tbody></table></div>`;
+  }],
+  disciplina: ['Disciplina', () => {
+    const cnt = {};
+    for (const p of D.provvedimenti){const c = cnt[p.squadra] ??= {A: 0, E: 0, D: 0}; c[p.tipo] += p.n || 1}
+    const rows = D.squadre.map(s => ({id: s.id, pt: DISC[s.id] ?? 0, c: cnt[s.id] || {A: 0, E: 0, D: 0}}))
+      .sort((a, b) => a.pt - b.pt || T[a.id].nome.localeCompare(T[b.id].nome));
+    const players = {};
+    for (const p of D.provvedimenti.filter(p => p.squadra === ME)){const x = players[p.nome] ??= {A: 0, E: 0, last: 0}; if (p.tipo === 'A') x.A += p.n || 1; else x.E++; x.last = Math.max(x.last, p.g)}
+    const pl = Object.entries(players).sort((a, b) => b[1].A - a[1].A || a[0].localeCompare(b[0]));
+    return `<div class="grid2">
+    <div style="display:grid;gap:10px;align-content:start"><h2>Coppa Disciplina</h2>
+    <p class="note">Punti ufficiali al ${fmtDate(D.disciplina.al)} (comunicato n. ${D.disciplina.comunicato}): meno punti è meglio. Il comunicato la aggiorna con una settimana di ritardo. Ammoniti ed espulsi sono contati dai provvedimenti del Giudice Sportivo.</p>
+    <div class="scroll"><table><thead><tr><th>#</th><th class="l">Squadra</th><th>Punti</th><th title="Ammonizioni">Amm.</th><th title="Giocatori espulsi">Esp.</th><th title="Dirigenti espulsi">Dir.</th></tr></thead><tbody>
+    ${rows.map((r, i) => `<tr class="${r.id === ME ? 'me' : ''}"><td class="pos">${i + 1}</td><td class="l team">${esc(T[r.id].nome)}</td><td class="pts">${num(r.pt, 1)}</td><td>${r.c.A}</td><td>${r.c.E}</td><td>${r.c.D}</td></tr>`).join('')}
+    </tbody></table></div></div>
+    <div style="display:grid;gap:10px;align-content:start"><h2>Cartellini ${esc(T[ME].breve)}</h2>
+    <p class="note">Da regolamento la squalifica automatica scatta alla 2ª ammonizione (il cartellino azzurro vale come ammonizione). Le ammonizioni si azzerano a fine girone.</p>
+    ${pl.length ? `<div class="scroll"><table><thead><tr><th class="l">Giocatore</th><th>Amm.</th><th>Esp.</th><th class="l">Stato</th></tr></thead><tbody>
+    ${pl.map(([n, x]) => `<tr class="${isMe(n, ME) ? 'me' : ''}"><td class="l">${esc(n)}${isMe(n, ME) ? ' ' + tu : ''}</td><td>${x.A}</td><td>${x.E}</td><td class="l">${x.A % 2 === 1 ? '<span class="badge">Diffidato</span>' : x.A >= 2 ? '<span class="badge red">Squalifica</span>' : ''}</td></tr>`).join('')}
+    </tbody></table></div>` : '<p class="note">Nessun provvedimento.</p>'}</div></div>`;
+  }],
+  marcatori: ['Marcatori', () => {
+    const L = D.marcatori.lista; let pos = 0, last = null;
+    return `<p class="lead">Classifica marcatori ufficiale del comunicato n. ${D.marcatori.comunicato}. In evidenza i giocatori di ${esc(T[ME].breve)}.</p>
+    <div class="scroll"><table><thead><tr><th>#</th><th class="l">Giocatore</th><th class="l">Squadra</th><th>Reti</th></tr></thead><tbody>
+    ${L.map((p, i) => {if (p.reti !== last){pos = i + 1; last = p.reti} return `<tr class="${p.squadra === ME ? 'me' : ''}"><td class="pos">${pos}</td><td class="l team">${esc(p.nome)}${isMe(p.nome, p.squadra) ? ' ' + tu : ''}</td><td class="l">${esc(T[p.squadra].breve)}</td><td class="pts">${p.reti}</td></tr>`}).join('')}
+    </tbody></table></div>`;
+  }],
+  proiezione: ['Proiezione', () => {
+    const N = D.partiteTotali;
+    const rows = current.map(r => ({id: r.id, proj: r.g ? r.pt / r.g * N : 0, max: r.pt + 3 * (N - r.g), pt: r.pt}))
+      .sort((a, b) => b.proj - a.proj);
+    const top = Math.max(...rows.map(r => r.max), 1);
+    return `<p class="lead">Punti a fine stagione regolare (${N} partite) se ogni squadra mantenesse la media punti attuale. La parte chiara della barra arriva al massimo dei punti ancora raggiungibili. Con poche giornate giocate è solo indicativa.</p>
+    <div class="bars">${rows.map((r, i) => `<div class="bar ${r.id === ME ? 'me' : ''}"><span class="t">${i + 1}. ${esc(T[r.id].breve)}</span><span class="track"><span class="fill lo" style="width:${r.max / top * 100}%"></span><span class="fill" style="width:${r.proj / top * 100}%"></span></span><span class="n">${Math.round(r.proj)}</span></div>`).join('')}</div>
+    <p class="note">Le prime ${D.playoff} vanno ai Play Off; dalla 7ª alla 12ª alla Coppa "Walter Godoli".</p>`;
+  }],
+  giornate: ['Giornate', () => `
+    <p class="lead">Tutte le partite del girone di andata, nell'ordine in cui si giocano (la 10ª giornata è stata spostata a gennaio).</p>
+    <div class="rounds">${D.giornate.map(r => `<div class="round"><h3>${r.g}ª giornata <small>${esc(r.label)}</small></h3>
+      ${D.partite.filter(m => m.g === r.g).map(m => `<div class="fx ${m.casa === ME || m.ospite === ME ? 'me' : ''}"><span class="h">${esc(T[m.casa].breve)}</span><span class="s ${m.gc == null ? 'wait' : ''}">${m.gc == null ? '–' : m.gc + '-' + m.go}</span><span>${esc(T[m.ospite].breve)}</span></div>`).join('')}
+    </div>`).join('')}</div>`],
+};
+
+function drawChart(sel){
+  const n = playedRounds.length, teams = D.squadre.length;
+  const W = 720, H = 340, L = 34, R = 110, Tp = 16, B = 34;
+  const x = i => n > 1 ? L + i * (W - L - R) / (n - 1) : L + (W - L - R) / 2;
+  const y = p => Tp + (p - 1) * (H - Tp - B) / (teams - 1);
+  const st = playedRounds.map((_, i) => standingAt(i + 1));
+  let s = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Andamento posizioni">`;
+  for (let p = 1; p <= teams; p++) s += `<line x1="${L}" x2="${W - R}" y1="${y(p)}" y2="${y(p)}" stroke="var(--line)" stroke-width="1"/><text x="${L - 8}" y="${y(p) + 4}" text-anchor="end" font-size="12" fill="var(--muted)">${p}</text>`;
+  s += `<line x1="${L}" x2="${W - R}" y1="${(y(D.playoff) + y(D.playoff + 1)) / 2}" y2="${(y(D.playoff) + y(D.playoff + 1)) / 2}" stroke="var(--po)" stroke-dasharray="4 4" stroke-width="1.5"/>`;
+  playedRounds.forEach((g, i) => s += `<text x="${x(i)}" y="${H - 10}" text-anchor="middle" font-size="12" fill="var(--muted)">${g}ª</text>`);
+  const order = D.squadre.map(t => t.id).sort((a, b) => (a === ME || sel.has(a)) - (b === ME || sel.has(b)));
+  for (const id of order){
+    const hi = id === ME, on = sel.has(id);
+    const color = hi ? 'var(--mine)' : on ? 'var(--pitch)' : 'var(--line)';
+    const pts = st.map((tb, i) => [x(i), y(posOf(tb, id))]);
+    s += `<polyline points="${pts.map(p => p.join(',')).join(' ')}" fill="none" stroke="${color}" stroke-width="${hi || on ? 3 : 1.5}" stroke-linejoin="round"/>`;
+    s += pts.map(([a, b]) => `<circle cx="${a}" cy="${b}" r="${hi || on ? 4 : 2.5}" fill="${color}"/>`).join('');
+    if (hi || on){const [a, b] = pts[pts.length - 1]; s += `<text x="${a + 10}" y="${b + 4}" font-size="13" font-weight="700" fill="var(--ink)">${esc(T[id].breve)}</text>`}
+  }
+  document.getElementById('chart').innerHTML = s + '</svg>';
+}
+
+let genMode = 'uff';
+const tabs = document.getElementById('tabs'), view = document.getElementById('view');
+function show(key){
+  if (!VIEWS[key]) key = 'generale';
+  for (const b of tabs.children) b.setAttribute('aria-selected', b.dataset.k === key);
+  view.innerHTML = VIEWS[key][1]();
+  if (key === 'generale' && UFF){
+    document.getElementById('mode').addEventListener('click', e => {
+      const b = e.target.closest('button'); if (!b) return;
+      genMode = b.dataset.m; show('generale');
+    });
+  }
+  if (key === 'andamento'){
+    const sel = new Set();
+    drawChart(sel);
+    document.getElementById('pick').addEventListener('click', e => {
+      const b = e.target.closest('button'); if (!b) return;
+      const id = b.dataset.id; sel.has(id) ? sel.delete(id) : sel.add(id);
+      b.setAttribute('aria-pressed', sel.has(id)); drawChart(sel);
+    });
+  }
+  try { localStorage.setItem('tab', key) } catch (e) {}
+}
+tabs.innerHTML = Object.entries(VIEWS).map(([k, [label]]) => `<button role="tab" data-k="${k}" aria-selected="false">${label}</button>`).join('');
+tabs.addEventListener('click', e => {const b = e.target.closest('button'); if (b) show(b.dataset.k)});
+let start = location.hash.slice(1);
+if (!VIEWS[start]) { try { start = localStorage.getItem('tab') || 'generale' } catch (e) { start = 'generale' } }
+show(start);
+</script>
+
+</body>
+</html>
