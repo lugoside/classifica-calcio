@@ -327,15 +327,6 @@ const VIEWS = {
     ${L.map((p, i) => {if (p.reti !== last){pos = i + 1; last = p.reti} return `<tr class="${p.squadra === ME ? 'me' : ''}"><td class="pos">${pos}</td><td class="l team">${esc(p.nome)}${isMe(p.nome, p.squadra) ? ' ' + tu : ''}</td><td class="l">${esc(T[p.squadra].breve)}</td><td class="pts">${p.reti}</td></tr>`}).join('')}
     </tbody></table></div>`;
   }],
-  proiezione: ['Proiezione', () => {
-    const N = D.partiteTotali;
-    const rows = current.map(r => ({id: r.id, proj: r.g ? r.pt / r.g * N : 0, max: r.pt + 3 * (N - r.g), pt: r.pt}))
-      .sort((a, b) => b.proj - a.proj);
-    const top = Math.max(...rows.map(r => r.max), 1);
-    return `<p class="lead">Punti a fine stagione regolare (${N} partite) se ogni squadra mantenesse la media punti attuale. La parte chiara della barra arriva al massimo dei punti ancora raggiungibili. Con poche giornate giocate è solo indicativa.</p>
-    <div class="bars">${rows.map((r, i) => `<div class="bar ${r.id === ME ? 'me' : ''}"><span class="t">${i + 1}. ${esc(T[r.id].breve)}</span><span class="track"><span class="fill lo" style="width:${r.max / top * 100}%"></span><span class="fill" style="width:${r.proj / top * 100}%"></span></span><span class="n">${Math.round(r.proj)}</span></div>`).join('')}</div>
-    <p class="note">Le prime ${D.playoff} vanno ai Play Off; dalla 7ª alla 12ª alla Coppa "Walter Godoli".</p>`;
-  }],
   giornate: ['Giornate', () => `
     <p class="lead">Tutte le partite del girone di andata, nell'ordine in cui si giocano (la 10ª giornata è stata spostata a gennaio).</p>
     <div class="rounds">${D.giornate.map(r => `<div class="round"><h3>${r.g}ª giornata <small>${esc(r.label)}</small></h3>
