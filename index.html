@@ -307,7 +307,17 @@ const VIEWS = {
     const rows = D.squadre.map(s => ({id: s.id, pt: DISC[s.id] ?? 0, c: cnt[s.id] || {A: 0, E: 0, D: 0}}))
       .sort((a, b) => a.pt - b.pt || T[a.id].nome.localeCompare(T[b.id].nome));
     const players = {};
-    for (const p of D.provvedimenti.filter(p => p.squadra === ME)){const x = players[p.nome] ??= {A: 0, E: 0, last: 0}; if (p.tipo === 'A') x.A += p.n || 1; else x.E++; x.last = Math.max(x.last, p.g)}
+    // Riunione società 26/08: squalifica alla 4ª ammonizione, poi recidiva alla 3ª, alla 2ª, quindi a ogni ammonizione.
+    const soglia = k => [4, 3, 2][k] ?? 1;
+    for (const p of D.provvedimenti.filter(p => p.squadra === ME)){
+      const x = players[p.nome] ??= {A: 0, E: 0, cur: 0, k: 0, appena: false};
+      if (p.tipo !== 'A'){x.E++; continue}
+      for (let i = 0; i < (p.n || 1); i++){
+        x.A++; x.cur++; x.appena = false;
+        if (x.cur >= soglia(x.k)){x.k++; x.cur = 0; x.appena = true}
+      }
+    }
+    for (const x of Object.values(players)) x.manca = soglia(x.k) - x.cur;
     const pl = Object.entries(players).sort((a, b) => b[1].A - a[1].A || a[0].localeCompare(b[0]));
     return `<div class="grid2">
     <div style="display:grid;gap:10px;align-content:start"><h2>Coppa Disciplina</h2>
@@ -316,9 +326,9 @@ const VIEWS = {
     ${rows.map((r, i) => `<tr class="${r.id === ME ? 'me' : ''}"><td class="pos">${i + 1}</td><td class="l team">${esc(T[r.id].nome)}</td><td class="pts">${num(r.pt, 1)}</td><td>${r.c.A}</td><td>${r.c.E}</td><td>${r.c.D}</td></tr>`).join('')}
     </tbody></table></div></div>
     <div style="display:grid;gap:10px;align-content:start"><h2>Cartellini ${esc(T[ME].breve)}</h2>
-    <p class="note">Sanzioni contate dai provvedimenti del Giudice Sportivo: alla 3ª si è diffidati, alla 4ª scatta 1 giornata di squalifica (così applica il Giudice in questa stagione). Le ammonizioni si azzerano a fine girone.</p>
-    ${pl.length ? `<div class="scroll"><table><thead><tr><th class="l">Giocatore</th><th>Amm.</th><th>Esp.</th><th class="l">Stato</th></tr></thead><tbody>
-    ${pl.map(([n, x]) => `<tr class="${isMe(n, ME) ? 'me' : ''}"><td class="l">${esc(n)}${isMe(n, ME) ? ' ' + tu : ''}</td><td>${x.A}</td><td>${x.E}</td><td class="l">${x.A % 4 === 3 ? '<span class="badge">Diffidato</span>' : x.A > 0 && x.A % 4 === 0 ? '<span class="badge red">Squalifica</span>' : ''}</td></tr>`).join('')}
+    <p class="note">Regola del campionato (riunione delle società del 26/08): la squalifica scatta alla 4ª ammonizione; dopo la prima squalifica, alla 3ª, poi alla 2ª, poi a ogni ammonizione. Il cartellino azzurro vale due ammonizioni. Diffidato = alla prossima ammonizione salta una giornata. Nei play off e in Coppa si azzera tutto e si viene squalificati alla 2ª ammonizione.</p>
+    ${pl.length ? `<div class="scroll"><table><thead><tr><th class="l">Giocatore</th><th>Amm.</th><th title="Ammonizioni che mancano alla prossima squalifica">Alla squal.</th><th>Esp.</th><th class="l">Stato</th></tr></thead><tbody>
+    ${pl.map(([n, x]) => `<tr class="${isMe(n, ME) ? 'me' : ''}"><td class="l">${esc(n)}${isMe(n, ME) ? ' ' + tu : ''}</td><td>${x.A}</td><td>${x.manca}</td><td>${x.E}</td><td class="l">${x.appena ? '<span class="badge red">Squalificato</span>' : x.manca === 1 ? '<span class="badge">Diffidato</span>' : ''}</td></tr>`).join('')}
     </tbody></table></div>` : '<p class="note">Nessun provvedimento.</p>'}</div></div>`;
   }],
   marcatori: ['Marcatori', () => {
